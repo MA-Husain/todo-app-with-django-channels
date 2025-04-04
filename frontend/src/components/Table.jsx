@@ -1,65 +1,64 @@
 import axios from 'axios'
 import React, { useState } from 'react'
-import { MdOutlineDeleteOutline, MdEditNote, MdOutlineCheckBox, MdOutlineCheckBoxOutlineBlank } from 'react-icons/md'
-
+import {
+  MdOutlineDeleteOutline,
+  MdEditNote,
+  MdOutlineCheckBox,
+  MdOutlineCheckBoxOutlineBlank,
+} from 'react-icons/md'
 
 const Table = ({ todos, isLoading, setTodos }) => {
-
-  const [editText, setEditText] = useState({
-    'body': ''
-  })
+  const [editText, setEditText] = useState({ id: null, body: '' })
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/todo/${id}/`)
-      const newList = todos.filter(todo => todo.id !== id)
+      const newList = todos.filter((todo) => todo.id !== id)
       setTodos(newList)
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
   const handleEdit = async (id, value) => {
     try {
-      const response = await axios.patch(`http://127.0.0.1:8000/api/todo/${id}/`, value)
-      // console.log(response.data);
-      const newTodos = todos.map(todo => todo.id === id ? response.data : todo)
+      const response = await axios.patch(
+        `http://127.0.0.1:8000/api/todo/${id}/`,
+        value
+      )
+      const newTodos = todos.map((todo) =>
+        todo.id === id ? response.data : todo
+      )
       setTodos(newTodos)
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
   const handleChange = (e) => {
-    // console.log(e.target.value);
-    setEditText(prev => ({
+    setEditText((prev) => ({
       ...prev,
-      'body': e.target.value
+      body: e.target.value,
     }))
-    // console.log(editText);
   }
 
   const handleClick = () => {
-    handleEdit(editText.id, editText)
-    setEditText({
-      'body': ""
-    })
+    handleEdit(editText.id, { body: editText.body })
+    setEditText({ id: null, body: '' })
   }
 
-  const handleCheckbox = (id, value) => {
-    // console.log(value.completed);
+  const handleCheckbox = (id, currentStatus) => {
     handleEdit(id, {
-      'completed': !value
+      completed: !currentStatus,
     })
   }
-
 
   return (
     <div className='flex justify-center mt-10 overflow-x-auto'>
       <table className='w-11/12 max-w-4xl table-auto'>
         <thead className='border-b-2 border-black'>
           <tr>
-            <th className='p-3 text-sm font-semibold tracking-wide text-left' >Checkbox</th>
+            <th className='p-3 text-sm font-semibold tracking-wide text-left'>Checkbox</th>
             <th className='p-3 text-sm font-semibold tracking-wide text-left'>To Do</th>
             <th className='p-3 text-sm font-semibold tracking-wide text-left'>Status</th>
             <th className='p-3 text-sm font-semibold tracking-wide text-left'>Date Created</th>
@@ -70,68 +69,72 @@ const Table = ({ todos, isLoading, setTodos }) => {
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan="5" className="text-center py-4">
-                Is Loading...
-              </td>
+              <td colSpan="5" className='text-center p-4'>Loading...</td>
+            </tr>
+          ) : todos.length === 0 ? (
+            <tr>
+              <td colSpan="5" className='text-center p-4'>No Todos Found</td>
             </tr>
           ) : (
-            todos.map((todoItem) => (
-              <tr key={todoItem.id} className='border-b border-black'>
+            todos.map((todo) => (
+              <tr key={todo.id} className='border-b'>
                 <td className='p-3'>
-                  <span
-                    onClick={() => handleCheckbox(todoItem.id, todoItem.completed)}
-                    className='inline-block cursor-pointer'
+                  <button onClick={() => handleCheckbox(todo.id, todo.completed)}>
+                    {todo.completed ? (
+                      <MdOutlineCheckBox className='text-green-600' size={24} />
+                    ) : (
+                      <MdOutlineCheckBoxOutlineBlank size={24} />
+                    )}
+                  </button>
+                </td>
+                <td className='p-3'>
+                  {editText.id === todo.id ? (
+                    <input
+                      type='text'
+                      value={editText.body}
+                      onChange={handleChange}
+                      className='p-1 border rounded w-full'
+                    />
+                  ) : (
+                    <span className={todo.completed ? 'line-through' : ''}>{todo.body}</span>
+                  )}
+                </td>
+                <td className='p-3'>
+                <span className={todo.completed ? 'text-green-600 font-semibold' : 'text-yellow-500 font-semibold'}>
+                  {todo.completed ? 'Completed' : 'Pending'}
+                </span>
+                </td>
+                <td className='p-3'>
+                  {new Date(todo.created).toLocaleString()}
+                </td>
+                <td className='p-3 flex gap-3'>
+                  {editText.id === todo.id ? (
+                    <button
+                      onClick={handleClick}
+                      className='btn btn-sm btn-primary'
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setEditText({ id: todo.id, body: todo.body })}
+                      className='text-blue-500'
+                    >
+                      <MdEditNote size={24} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(todo.id)}
+                    className='text-red-500'
                   >
-                    {todoItem.completed ? <MdOutlineCheckBox /> : <MdOutlineCheckBoxOutlineBlank />}
-                  </span>
-                </td>
-                <td className='p-3 text-sm' title={todoItem.id}>
-                  {todoItem.body}
-                </td>
-                <td className='p-3 text-sm text-center'>
-                  <span
-                    className={`p-1.5 text-xs font-medium tracking-wider rounded-md ${
-                      todoItem.completed ? 'bg-green-300' : 'bg-red-300'
-                    }`}
-                  >
-                    {todoItem.completed ? 'Done' : 'Incomplete'}
-                  </span>
-                </td>
-                <td className='p-3 text-sm font-medium'>
-                  {new Date(todoItem.created).toLocaleString()}
-                </td>
-                <td className='p-3 text-sm font-medium grid grid-flow-col items-center gap-3 mt-5'>
-                  <span>
-                    <label htmlFor="my-modal">
-                      <MdEditNote
-                        onClick={() => setEditText(todoItem)}
-                        className='text-xl cursor-pointer'
-                      />
-                    </label>
-                  </span>
-                  <span className='text-xl cursor-pointer'>
-                    <MdOutlineDeleteOutline onClick={() => handleDelete(todoItem.id)} />
-                  </span>
+                    <MdOutlineDeleteOutline size={24} />
+                  </button>
                 </td>
               </tr>
             ))
           )}
         </tbody>
-
       </table>
-
-      {/* Modal */}
-      <input type="checkbox" id="my-modal" className="modal-toggle" />
-      <div className="modal">
-        <div className="modal-box w-full max-w-lg-box">
-          <h3 className="font-bold text-lg">Edit Todo</h3>
-          <input type="text" value={editText.body} onChange={handleChange} placeholder="Type here" className="input input-bordered w-full mt-8" />
-          <div className="modal-action">
-            <label htmlFor="my-modal" onClick={handleClick} className="btn btn-primary">Edit</label>
-            <label htmlFor="my-modal" className="btn">Close</label>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

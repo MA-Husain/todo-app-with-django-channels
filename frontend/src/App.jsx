@@ -1,42 +1,34 @@
-import { useState, useEffect } from 'react'
-
-import './App.css'
-import Table from './components/Table'
-import TodoForm from './components/TodoForm'
-import axios from 'axios'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Nav from "./components/navigation/Nav"
+import HomePage from "./pages/HomePage"
+import Dashboard from "./pages/Dashboard"
+import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
+import ResetPasswordPage from "./pages/ResetPasswordPage"
+import ResetPasswordPageConfirm from "./pages/ResetPasswordPageConfirm";
+import ActivatePage from "./pages/ActivatePage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
-  const [todos, setTodos] = useState("")
-  const [isLoading, setisLoading] = useState(true)
-
-  useEffect(() => {
-    fetchData()
-    console.log(todos)
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/todo');
-      setTodos(response.data)
-      setisLoading(false)
-    } catch (error) {
-      console.log(error);
-    }
-  }
   return (
-    <div className='px-4 sm:px-8'>
-    <nav className='pt-8' >
-        <h1 className="text-3xl md:text-5xl text-center pb-8">To Do List</h1>
-    </nav>
-    <TodoForm
-      setTodos={setTodos}
-      fetchData={fetchData}
-    />
-    <Table
-        todos={todos}
-        isLoading={isLoading}
-        setTodos={setTodos} />
-    </div> 
+    <>
+      <Router>
+        <Nav />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/activate/:uid/:token" element={<ActivatePage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/password/reset/confirm/:uid/:token" element={<ResetPasswordPageConfirm />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
+      <ToastContainer />
+    </>
   )
 }
 
