@@ -2,78 +2,68 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from 'react-toastify'
 import { useDispatch, useSelector } from 'react-redux'
-import { BiLogInCircle } from "react-icons/bi"
+import { BiLockOpen } from "react-icons/bi"
 import Spinner from "../components/Spinner"
 import { resetPassword } from "../features/auth/authSlice"
+import FormField from "./FormField"
 
-const LoginPage = () => {
+const ResetPasswordPage = () => {
+  const [formData, setFormData] = useState({ email: "" })
+  const { email } = formData
 
-    const [formData, setFormData] = useState({
-        "email": "",
-    })
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
-    const { email } = formData
+  const { isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
 
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
 
-    const { isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    dispatch(resetPassword({ email }))
+  }
 
-
-    const handleChange = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        })
-        )
+  useEffect(() => {
+    if (isError) toast.error(message)
+    if (isSuccess) {
+      toast.success("A reset password email has been sent to your email.")
+      navigate("/")
     }
+  }, [isError, isSuccess, message, navigate, dispatch])
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="card w-full max-w-md shadow-xl p-6 bg-base-100">
+        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+          Reset Password <BiLockOpen />
+        </h2>
 
-        const userData = {
-            email
-        }
+        {isLoading && <Spinner />}
 
-        dispatch(resetPassword(userData))
-    }
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+        <FormField
+            type="email"
+            placeholder="Email"
+            name="email"
+            value={email}
+            onChange={handleChange}
+        />
 
-    useEffect(() => {
-        if (isError) {
-            toast.error(message)
-        }
-        if (isSuccess) {
-            navigate("/")
-            toast.success("A reset password email has been sent to you.")
-
-        }
-
-
-    }, [isError, isSuccess, message, navigate, dispatch])
-
-
-
-    return (
-        <>
-            <div className="container auth__container">
-                <h1 className="main__title">Reset Password <BiLogInCircle /></h1>
-
-                {isLoading && <Spinner />}
-
-                <form className="auth__form">
-                    <input type="text"
-                        placeholder="email"
-                        name="email"
-                        onChange={handleChange}
-                        value={email}
-                        required
-                    />
-
-                    <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Reset Password</button>
-                </form>
-            </div>
-        </>
-    )
+        {/* Add extra space above the button */}
+        <div className="mt-4">
+            <button className="btn btn-primary w-full" type="submit">
+            Send Reset Link
+            </button>
+        </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
-export default LoginPage
+export default ResetPasswordPage

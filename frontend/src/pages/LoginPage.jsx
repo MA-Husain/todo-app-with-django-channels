@@ -5,87 +5,76 @@ import { useDispatch, useSelector } from 'react-redux'
 import { login, reset, getUserInfo } from '../features/auth/authSlice'
 import { toast } from 'react-toastify'
 import Spinner from "../components/Spinner"
+import FormField from "./FormField"
 
 const LoginPage = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" })
+  const { email, password } = formData
 
-    const [formData, setFormData] = useState({
-        "email": "",
-        "password": "",
-    })
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
-    const { email, password } = formData
+  const { user, isLoading, isError, isSuccess, message } = useSelector(state => state.auth)
 
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+  const handleChange = e => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
-    const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+  const handleSubmit = e => {
+    e.preventDefault()
+    dispatch(login({ email, password }))
+  }
 
-    const handleChange = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        })
-        )
-    }
+  useEffect(() => {
+    if (isError) toast.error(message)
+    if (isSuccess || user) navigate("/dashboard")
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
+    dispatch(reset())
+    dispatch(getUserInfo())
+  }, [isError, isSuccess, user, navigate, dispatch])
 
-        const userData = {
-            email,
-            password,
-        }
-        dispatch(login(userData))
-    }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
+      <div className="card w-full max-w-md shadow-xl p-8 bg-base-100 space-y-6">
+      <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+        Login <BiLogInCircle />
+        </h2>
 
+        {isLoading && <Spinner />}
 
-    useEffect(() => {
-        if (isError) {
-            toast.error(message)
-        }
+        <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
+        {/* Email & Password Fields */}
+        <div className="flex flex-col gap-y-4">
+            <FormField
+            type="email"
+            placeholder="Email"
+            name="email"
+            value={email}
+            onChange={handleChange}
+            />
+            <FormField
+            type="password"
+            placeholder="Password"
+            name="password"
+            value={password}
+            onChange={handleChange}
+            />
+        </div>
 
-        if (isSuccess || user) {
-            navigate("/dashboard")
-        }
+        {/* Links */}
+        <div className="flex justify-between text-sm text-primary mt-2">
+            <Link to="/reset-password" className="hover:underline">Forgot Password?</Link>
+            <Link to="/register" className="hover:underline">New user? Sign up</Link>
+        </div>
 
-        dispatch(reset())
-        dispatch(getUserInfo())
-
-    }, [isError, isSuccess, user, navigate, dispatch])
-
-
-
-    return (
-        <>
-            <div className="container auth__container">
-                <h1 className="main__title">Login <BiLogInCircle /></h1>
-
-                {isLoading && <Spinner />}
-
-                <form className="auth__form">
-                    <input type="text"
-                        placeholder="email"
-                        name="email"
-                        onChange={handleChange}
-                        value={email}
-                        required
-                    />
-                    <input type="password"
-                        placeholder="password"
-                        name="password"
-                        onChange={handleChange}
-                        value={password}
-                        required
-                    />
-                    <Link to="/reset-password" className="text-gray-300 hover:text-gray-400">
-                    Forget Password?
-                    </Link>
-
-                    <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Login</button>
-                </form>
-            </div>
-        </>
-    )
+        {/* Submit Button */}
+        <div className="mt-4">
+            <button className="btn btn-primary w-full">Login</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 export default LoginPage

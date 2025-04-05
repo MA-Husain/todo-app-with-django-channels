@@ -1,7 +1,13 @@
 from django.db import models
 
-# Create your models here.
+from django.conf import settings
+
 class Todo(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="todos"
+    )
     body = models.CharField(max_length=300)
     completed = models.BooleanField(default=False)
     updated = models.DateTimeField(auto_now=True)

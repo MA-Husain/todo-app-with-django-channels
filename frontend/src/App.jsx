@@ -10,18 +10,20 @@ import ResetPasswordPage from "./pages/ResetPasswordPage"
 import ResetPasswordPageConfirm from "./pages/ResetPasswordPageConfirm";
 import ActivatePage from "./pages/ActivatePage";
 import NotFoundPage from "./pages/NotFoundPage";
+import GuestOnlyRoute from "./components/routes/GuestOnlyRoute"
 
 function App() {
+  
   return (
     <>
       <Router>
         <Nav />
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<GuestOnlyRoute><HomePage /></GuestOnlyRoute>} />
+          <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
+          <Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
           <Route path="/activate/:uid/:token" element={<ActivatePage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/reset-password" element={<GuestOnlyRoute><ResetPasswordPage /></GuestOnlyRoute>} />
           <Route path="/password/reset/confirm/:uid/:token" element={<ResetPasswordPageConfirm />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="*" element={<NotFoundPage />} />

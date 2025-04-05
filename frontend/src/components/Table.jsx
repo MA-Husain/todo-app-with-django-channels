@@ -7,12 +7,21 @@ import {
   MdOutlineCheckBoxOutlineBlank,
 } from 'react-icons/md'
 
+import { useSelector } from 'react-redux';
+
 const Table = ({ todos, isLoading, setTodos }) => {
+  const { user } = useSelector((state) => state.auth);
+  const config = {
+    headers: {
+      Authorization: `Bearer ${user.access}`
+    }
+  };
   const [editText, setEditText] = useState({ id: null, body: '' })
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/todo/${id}/`)
+      
+      await axios.delete(`http://127.0.0.1:8000/api/todo/${id}/`, config)
       const newList = todos.filter((todo) => todo.id !== id)
       setTodos(newList)
     } catch (error) {
@@ -24,7 +33,8 @@ const Table = ({ todos, isLoading, setTodos }) => {
     try {
       const response = await axios.patch(
         `http://127.0.0.1:8000/api/todo/${id}/`,
-        value
+        value,
+        config
       )
       const newTodos = todos.map((todo) =>
         todo.id === id ? response.data : todo
@@ -79,7 +89,7 @@ const Table = ({ todos, isLoading, setTodos }) => {
             todos.map((todo) => (
               <tr key={todo.id} className='border-b'>
                 <td className='p-3'>
-                  <button onClick={() => handleCheckbox(todo.id, todo.completed)}>
+                  <button onClick={() => handleCheckbox(todo.id, todo.completed)} className="cursor-pointer">
                     {todo.completed ? (
                       <MdOutlineCheckBox className='text-green-600' size={24} />
                     ) : (
@@ -111,21 +121,21 @@ const Table = ({ todos, isLoading, setTodos }) => {
                   {editText.id === todo.id ? (
                     <button
                       onClick={handleClick}
-                      className='btn btn-sm btn-primary'
+                      className='btn btn-sm btn-primary cursor-pointer'
                     >
                       Save
                     </button>
                   ) : (
                     <button
                       onClick={() => setEditText({ id: todo.id, body: todo.body })}
-                      className='text-blue-500'
+                      className='text-blue-500 cursor-pointer'
                     >
                       <MdEditNote size={24} />
                     </button>
                   )}
                   <button
                     onClick={() => handleDelete(todo.id)}
-                    className='text-red-500'
+                    className='text-red-500 cursor-pointer'
                   >
                     <MdOutlineDeleteOutline size={24} />
                   </button>

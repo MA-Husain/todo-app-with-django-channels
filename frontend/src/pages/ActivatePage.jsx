@@ -7,50 +7,49 @@ import { toast } from 'react-toastify'
 import Spinner from '../components/Spinner'
 
 const ActivatePage = () => {
+  const { uid, token } = useParams()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
+  const { isLoading, isError, isSuccess, message } = useSelector(state => state.auth)
 
-    const { uid, token } = useParams()
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    dispatch(activate({ uid, token }))
+    toast.success("Your account has been activated! You can now login.")
+  }
 
-    const { isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-
-        const userData = {
-            uid,
-            token
-        }
-        dispatch(activate(userData))
-        toast.success("Your account has been activated! You can login now")
+  useEffect(() => {
+    if (isError) {
+      toast.error(message)
     }
 
-    useEffect(() => {
-        if (isError) {
-            toast.error(message)
-        }
+    if (isSuccess) {
+      navigate("/login")
+    }
 
-        if (isSuccess) {
-            navigate("/login")
-        }
+    dispatch(reset())
+  }, [isError, isSuccess, navigate, dispatch])
 
-        dispatch(reset())
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="card w-full max-w-md shadow-xl p-6 bg-base-100 text-center">
+        <h2 className="text-2xl font-bold flex items-center gap-2 justify-center mb-6">
+          Activate Account <BiUserCheck />
+        </h2>
 
-    }, [isError, isSuccess, navigate, dispatch])
+        {isLoading && <Spinner />}
 
-
-    return (
-        <div>
-            <div className="container auth__container">
-                <h1 className="main__title">Activate Account <BiUserCheck /> </h1>
-
-                {isLoading && <Spinner />}
-
-                <button className="btn btn-accent btn-activate-account" type="submit" onClick={handleSubmit}>Activate Account</button>
-            </div>
-        </div>
-    )
+        <button
+          className="btn btn-accent w-full"
+          type="button"
+          onClick={handleSubmit}
+        >
+          Activate Account
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default ActivatePage

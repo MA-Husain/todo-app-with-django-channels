@@ -3,118 +3,114 @@ import { toast } from 'react-toastify'
 import { BiUser } from 'react-icons/bi'
 import { useDispatch, useSelector } from 'react-redux'
 import { register, reset } from '../features/auth/authSlice'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Spinner from '../components/Spinner'
+import FormField from './FormField'
 
 const RegisterPage = () => {
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    re_password: "",
+  })
 
-    const [formData, setFormData] = useState({
-        "first_name": "",
-        "last_name": "",
-        "email": "",
-        "password": "",
-        "re_password": "",
-    })
+  const { first_name, last_name, email, password, re_password } = formData
 
-    const { first_name, last_name, email, password, re_password } = formData
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { user, isLoading, isError, isSuccess, message } = useSelector(state => state.auth)
 
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
 
-    const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth)
+  const handleSubmit = (e) => {
+    e.preventDefault()
 
-    const handleChange = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        })
-        )
+    if (password !== re_password) {
+      toast.error("Passwords do not match")
+    } else {
+      const userData = { first_name, last_name, email, password, re_password }
+      dispatch(register(userData))
+    }
+  }
+
+  useEffect(() => {
+    if (isError) toast.error(message)
+
+    if (isSuccess || user) {
+      toast.success("An activation email has been sent to your email. Please check your inbox.")
+      navigate("/")
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
+    dispatch(reset())
+  }, [isError, isSuccess, user, navigate, dispatch])
 
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="card w-full max-w-md shadow-xl p-6 bg-base-100">
+        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+          Register <BiUser />
+        </h2>
 
-        if (password !== re_password) {
-            toast.error("Passwords do not match")
-        } else {
-            const userData = {
-                first_name,
-                last_name,
-                email,
-                password,
-                re_password
-            }
-            dispatch(register(userData))
-        }
-    }
+        {isLoading && <Spinner />}
 
+        <form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
+          <div className="flex flex-col gap-y-4">
+            <FormField
+              type="text"
+              placeholder="First Name"
+              name="first_name"
+              value={first_name}
+              onChange={handleChange}
+            />
+            <FormField
+              type="text"
+              placeholder="Last Name"
+              name="last_name"
+              value={last_name}
+              onChange={handleChange}
+            />
+            <FormField
+              type="email"
+              placeholder="Email"
+              name="email"
+              value={email}
+              onChange={handleChange}
+            />
+            <FormField
+              type="password"
+              placeholder="Password"
+              name="password"
+              value={password}
+              onChange={handleChange}
+            />
+            <FormField
+              type="password"
+              placeholder="Retype Password"
+              name="re_password"
+              value={re_password}
+              onChange={handleChange}
+            />
+          </div>
 
-    useEffect(() => {
-        if (isError) {
-            toast.error(message)
-        }
+          <div className="text-sm text-center">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline">Login</Link>
+          </div>
 
-        if (isSuccess || user) {
-            navigate("/")
-            toast.success("An activation email has been sent to your email. Please check your email")
-        }
-
-        dispatch(reset())
-
-    }, [isError, isSuccess, user, navigate, dispatch])
-
-
-
-    return (
-        <>
-            <div className="container auth__container">
-                <h1 className="main__title">Register <BiUser /> </h1>
-
-                {isLoading && <Spinner />}
-
-                <form className="auth__form">
-                    <input type="text"
-                        placeholder="First Name"
-                        name="first_name"
-                        onChange={handleChange}
-                        value={first_name}
-                        required
-                    />
-                    <input type="text"
-                        placeholder="Last Name"
-                        name="last_name"
-                        onChange={handleChange}
-                        value={last_name}
-                        required
-                    />
-                    <input type="email"
-                        placeholder="Email"
-                        name="email"
-                        onChange={handleChange}
-                        value={email}
-                        required
-                    />
-                    <input type="password"
-                        placeholder="Password"
-                        name="password"
-                        onChange={handleChange}
-                        value={password}
-                        required
-                    />
-                    <input type="password"
-                        placeholder="Retype Password"
-                        name="re_password"
-                        onChange={handleChange}
-                        value={re_password}
-                        required
-                    />
-
-                    <button className="btn btn-primary" type="submit" onClick={handleSubmit}>Register</button>
-                </form>
-            </div>
-        </>
-    )
+          <div className="mt-2">
+            <button className="btn btn-primary w-full" type="submit">Register</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 
 export default RegisterPage

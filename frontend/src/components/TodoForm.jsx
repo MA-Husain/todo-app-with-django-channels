@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useSelector } from 'react-redux';
 
 
 const TodoForm = ({ setTodos, fetchData }) => {
+    const { user } = useSelector((state) => state.auth);
 
     const [newTodo, setNewTodo] = useState({
         'body': ''
@@ -16,15 +18,29 @@ const TodoForm = ({ setTodos, fetchData }) => {
     }
 
     const postTodo = async () => {
+        if (!newTodo.body.trim()) return;
+    
         try {
-            await axios.post(`http://127.0.0.1:8000/api/todo/`, newTodo)
-            setNewTodo({ 'body': '' })
-            setTodos(prevTodos => [...prevTodos, newTodo])
-            fetchData()
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${user.access}`,
+                    "Content-Type": "application/json"
+                }
+            };
+    
+            const response = await axios.post(
+                'http://127.0.0.1:8000/api/todo/',
+                newTodo,
+                config
+            );
+    
+            setNewTodo({ body: '' });
+            fetchData(); // fetch updated todos
         } catch (error) {
-            console.log(error);
+            console.error("Failed to post todo:", error.response?.data || error);
         }
-    }
+    };
+    
 
     // const handleKeyDown = (e) => {
     //     if (e.key === 'Enter') {
