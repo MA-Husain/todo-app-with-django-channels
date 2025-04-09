@@ -42,7 +42,7 @@ const Nav = () => {
               </button>
             </div>
           ) : (
-            <NavLink to="/dashboard" className="btn btn-primary btn-sm text-white">
+            <NavLink to={user ? '/dashboard' : '/login'} className="btn btn-primary btn-sm text-white">
               MyToDo
             </NavLink>
           )}

@@ -1,79 +1,53 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useSelector } from 'react-redux';
+// frontend/src/components/TodoForm.jsx
+import { useState } from "react";
+import axios from '../axiosConfig';
+import { useSelector } from "react-redux";
 
+const TodoForm = ({ listId, setTodos }) => {
+  const { user } = useSelector((state) => state.auth);
+  const [body, setBody] = useState("");
 
-const TodoForm = ({ setTodos, fetchData }) => {
-    const { user } = useSelector((state) => state.auth);
+  const handleSubmit = async () => {
+    if (!body.trim()) return;
 
-    const [newTodo, setNewTodo] = useState({
-        'body': ''
-    })
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.access}`,
+          "Content-Type": "application/json",
+        },
+      };
 
-    const handleChange = (e) => {
-        setNewTodo(prev => ({
-            ...prev,
-            'body': e.target.value
-        }))
+      const response = await axios.post(
+        "http://localhost:8000/api/items/",
+        { body, todo_list: listId }, // ✅ important: todo_list key
+        config
+      );
+
+      setTodos((prev) => [...prev, response.data]); // ✅ update UI instantly
+      setBody(""); // clear input
+    } catch (err) {
+      console.error("Failed to add todo:", err.response?.data || err);
     }
+  };
 
-    const postTodo = async () => {
-        if (!newTodo.body.trim()) return;
-    
-        try {
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${user.access}`,
-                    "Content-Type": "application/json"
-                }
-            };
-    
-            const response = await axios.post(
-                'http://127.0.0.1:8000/api/todo/',
-                newTodo,
-                config
-            );
-    
-            setNewTodo({ body: '' });
-            fetchData(); // fetch updated todos
-        } catch (error) {
-            console.error("Failed to post todo:", error.response?.data || error);
-        }
-    };
-    
+  return (
+    <div className="flex justify-center mb-6">
+      <input
+        type="text"
+        placeholder="Add a new task"
+        value={body}
+        className="input input-bordered w-full max-w-md mr-4"
+        onChange={(e) => setBody(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSubmit();
+        }}
+      />
+      <button onClick={handleSubmit} className="btn btn-primary">
+        Add
+      </button>
+    </div>
+  );
+};
 
-    // const handleKeyDown = (e) => {
-    //     if (e.key === 'Enter') {
-    //         postTodo();
-    //     }
-    // }
-
-
-
-    return (
-        <div className="flex justify-center w-full mt-10">
-            <div className="flex items-center gap-4">
-                <input
-                    type="text"
-                    placeholder="Add Todo"
-                    value={newTodo.body}
-                    className="input input-bordered input-info w-full sm:w-72"
-                    onChange={handleChange}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            postTodo();
-                        }
-                    }}
-                />
-                <button
-                    onClick={postTodo}
-                    className="btn btn-primary"
-                >
-                    Add todo
-                </button>
-            </div>
-        </div>
-    )
-}
-
-export default TodoForm
+export default TodoForm;

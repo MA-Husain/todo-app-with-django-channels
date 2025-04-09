@@ -1,11 +1,16 @@
-from . import views
-from rest_framework import routers
+# todo/urls.py
+from rest_framework.routers import DefaultRouter
+from .views import TodoListViewSet, TodoItemViewSet, SharedTodoListViewSet, TodoListPermissionView
+from django.urls import path
 
-router = routers.DefaultRouter()
-router.register('todo', views.TodoViewSet, basename='todo')
 
-urlpatterns = [
-    
+
+router = DefaultRouter()
+router.register('lists', TodoListViewSet, basename='lists')
+router.register('items', TodoItemViewSet, basename='items')
+router.register('shared-todolists', SharedTodoListViewSet, basename='shared-todolists')
+
+urlpatterns = router.urls  # ✅ This line is mandatory
+urlpatterns += [
+    path('lists/<int:pk>/permission/', TodoListPermissionView.as_view()),
 ]
-
-urlpatterns += router.urls
