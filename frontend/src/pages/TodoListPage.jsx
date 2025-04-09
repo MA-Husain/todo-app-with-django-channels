@@ -1,42 +1,42 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import axiosInstance from '../axiosConfig';
 import { useSelector } from 'react-redux';
 import TodoForm from '../components/TodoForm';
 import Table from '../components/Table';
-import toast from 'react-hot-toast'; // Make sure you're using react-hot-toast
-import ShareListModal from "../components/ShareListModal";
-import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import ShareListModal from '../components/ShareListModal';
+import SharedWithSection from '../components/SharedWithSection';
 
 const TodoListPage = () => {
   const { id } = useParams();
   const { user } = useSelector(state => state.auth);
   const location = useLocation();
-  const [permission, setPermission] = useState('edit'); // default is edit (owner)
+  const [permission, setPermission] = useState('edit');
   const [isOwner, setIsOwner] = useState(false);
   const [listTitle, setListTitle] = useState('');
   const [originalTitle, setOriginalTitle] = useState('');
   const [todos, setTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showShare, setShowShare] = useState(false); // for future modal
-  
+  const [showShare, setShowShare] = useState(false);
+  const [shareRefreshTrigger, setShareRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-  
+
     const config = {
       headers: { Authorization: `Bearer ${user.access}` },
     };
-  
+
     const fetchListAndTodos = async () => {
       try {
         const [listRes, todosRes, permRes] = await Promise.all([
           axiosInstance.get(`lists/${id}/`, config),
           axiosInstance.get(`items/?todo_list=${id}`, config),
-          axiosInstance.get(`lists/${id}/permission/`, config)
+          axiosInstance.get(`lists/${id}/permission/`, config),
         ]);
-  
+
         setListTitle(listRes.data.title);
         setOriginalTitle(listRes.data.title);
         setTodos(todosRes.data);
@@ -54,7 +54,7 @@ const TodoListPage = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchListAndTodos();
   }, [id, user]);
 
@@ -76,7 +76,7 @@ const TodoListPage = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.target.blur(); // triggers onBlur
+      e.target.blur();
     }
   };
 
@@ -106,20 +106,18 @@ const TodoListPage = () => {
         )}
       </div>
 
-      {/* Placeholder Share Modal */}
-      {/* Real Share Modal */}
+      {/* Share Modal */}
       {isOwner && (
         <ShareListModal
           listId={id}
           isOpen={showShare}
           onClose={() => setShowShare(false)}
+          onShareSuccess={() => setShareRefreshTrigger(prev => prev + 1)} // 🆕
         />
       )}
 
       {/* Todo Creation Form */}
-      {permission !== 'view' && (
-        <TodoForm listId={id} setTodos={setTodos} />
-      )}
+      {permission !== 'view' && <TodoForm listId={id} setTodos={setTodos} />}
 
       {/* Todos Display */}
       {error ? (
@@ -133,6 +131,9 @@ const TodoListPage = () => {
       ) : (
         <Table todos={todos} setTodos={setTodos} permission={permission} />
       )}
+
+      {/* Shared With Section */}
+      {isOwner && <SharedWithSection listId={id} token={user.access} isOwner={isOwner} refreshTrigger={shareRefreshTrigger}/>}
     </div>
   );
 };

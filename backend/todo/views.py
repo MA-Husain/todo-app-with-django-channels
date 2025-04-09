@@ -66,7 +66,28 @@ class SharedTodoListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return SharedTodoList.objects.filter(user=self.request.user)
+        user = self.request.user
+        list_id = self.request.query_params.get('list_id')
+        shared_with_me = self.request.query_params.get('shared_with_me')
+
+        if list_id:
+            try:
+                todo_list = TodoList.objects.get(pk=list_id)
+            except TodoList.DoesNotExist:
+                return SharedTodoList.objects.none()
+
+            # Owner is viewing all shares for a list they own
+            if todo_list.owner == user:
+                return SharedTodoList.objects.filter(todo_list_id=list_id)
+
+        # ✅ NEW: For dashboard - only lists shared *with* me
+        if shared_with_me == 'true':
+            return SharedTodoList.objects.filter(user=user)
+
+        # Default: lists I own OR shared with me
+        return SharedTodoList.objects.filter(todo_list__owner=user) | SharedTodoList.objects.filter(user=user)
+
+
 
     def perform_create(self, serializer):
         email = self.request.data.get('shared_with_email')
@@ -92,6 +113,33 @@ class SharedTodoListViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("This user already has access to the list.")
 
         serializer.save(user=shared_user, todo_list_id=todo_list_id)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # ✅ Only list owner can update share
+        if instance.todo_list.owner != request.user:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # ✅ Only list owner can unshare
+        if instance.todo_list.owner != request.user:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().destroy(request, *args, **kwargs)
+    
+    def get_object(self):
+        obj = super().get_object()
+        # Ensure only the owner of the list can update/delete
+        if obj.todo_list.owner != self.request.user:
+            raise PermissionDenied("You do not have permission to modify this sharing.")
+        return obj
+
+
 
 
 class TodoListPermissionView(APIView):

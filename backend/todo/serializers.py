@@ -20,9 +20,13 @@ class TodoListSerializer(serializers.ModelSerializer):
 
 class SharedTodoListSerializer(serializers.ModelSerializer):
     shared_by = serializers.SlugRelatedField(source='todo_list.owner', read_only=True, slug_field='first_name')
-    shared_to = serializers.SlugRelatedField(source='user', read_only=True, slug_field='email')  # ← change source
+    shared_to = serializers.SlugRelatedField(source='user', read_only=True, slug_field='email')
     list = TodoListSerializer(source='todo_list', read_only=True)
+
+    shared_with_first_name = serializers.CharField(source='user.first_name', read_only=True)
+    shared_with_last_name = serializers.CharField(source='user.last_name', read_only=True)
 
     class Meta:
         model = SharedTodoList
-        fields = ['id', 'list', 'shared_by', 'shared_to', 'permission']
+        fields = ['id', 'list', 'shared_by', 'shared_to', 'shared_with_first_name', 'shared_with_last_name', 'permission']
+

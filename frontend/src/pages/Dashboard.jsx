@@ -29,7 +29,7 @@ const DashboardPage = () => {
 
     const fetchShared = async () => {
       try {
-        const res = await axios.get('/shared-todolists/', config);
+        const res = await axios.get('/shared-todolists/?shared_with_me=true', config);
         setShared(res.data);
       } catch (err) {
         console.error(err);

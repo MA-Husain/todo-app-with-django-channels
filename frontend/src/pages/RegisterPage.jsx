@@ -42,14 +42,14 @@ const RegisterPage = () => {
 
   useEffect(() => {
     if (isError) toast.error(message)
-
-    if (isSuccess || user) {
+  
+    if (isSuccess) {
       toast.success("An activation email has been sent to your email. Please check your inbox.")
-      navigate("/")
+      navigate("/login")
     }
-
+  
     dispatch(reset())
-  }, [isError, isSuccess, user, navigate, dispatch])
+  }, [isError, isSuccess, message, navigate, dispatch])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

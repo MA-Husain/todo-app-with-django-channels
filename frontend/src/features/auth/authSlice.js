@@ -94,8 +94,8 @@ export const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = action.payload;
-      })
+        // Don’t set `state.user` on registration (no tokens yet)
+      })      
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
