@@ -3,13 +3,13 @@ import { useState } from "react";
 import axios from '../axiosConfig';
 import { useSelector } from "react-redux";
 
-const TodoForm = ({ listId, setTodos }) => {
+const TodoForm = ({ listId, socket }) => {
   const { user } = useSelector((state) => state.auth);
   const [body, setBody] = useState("");
 
   const handleSubmit = async () => {
     if (!body.trim()) return;
-
+  
     try {
       const config = {
         headers: {
@@ -17,19 +17,28 @@ const TodoForm = ({ listId, setTodos }) => {
           "Content-Type": "application/json",
         },
       };
-
+  
       const response = await axios.post(
         "http://localhost:8000/api/items/",
-        { body, todo_list: listId }, // ✅ important: todo_list key
+        { body, todo_list: listId },
         config
       );
-
-      setTodos((prev) => [...prev, response.data]); // ✅ update UI instantly
-      setBody(""); // clear input
+  
+      setBody(""); // ✅ Clear input after success
+  
+      // ✅ Let the WebSocket handle updating todos
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "todo_created",
+            todo: response.data,
+          })
+        );
+      }
     } catch (err) {
       console.error("Failed to add todo:", err.response?.data || err);
     }
-  };
+  };  
 
   return (
     <div className="flex justify-center mb-6">
@@ -49,5 +58,6 @@ const TodoForm = ({ listId, setTodos }) => {
     </div>
   );
 };
+
 
 export default TodoForm;

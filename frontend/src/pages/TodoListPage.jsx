@@ -21,46 +21,97 @@ const TodoListPage = () => {
   const [error, setError] = useState(null);
   const [showShare, setShowShare] = useState(false);
   const [shareRefreshTrigger, setShareRefreshTrigger] = useState(0);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    if (!user) return;
-
+    if (!user || !id) return;
+  
     const config = {
       headers: { Authorization: `Bearer ${user.access}` },
     };
-
-    const fetchListAndTodos = async () => {
+  
+    const fetchListAndSetupWebSocket = async () => {
       try {
         const [listRes, todosRes, permRes] = await Promise.all([
           axiosInstance.get(`lists/${id}/`, config),
           axiosInstance.get(`items/?todo_list=${id}`, config),
           axiosInstance.get(`lists/${id}/permission/`, config),
         ]);
-
+  
         setListTitle(listRes.data.title);
         setOriginalTitle(listRes.data.title);
         setTodos(todosRes.data);
         setPermission(permRes.data.permission || 'edit');
         setIsOwner(permRes.data.is_owner || false);
-        setIsLoading(false);
         setError(null);
+        setIsLoading(false);
+  
+        // ✅ Setup WebSocket *after* permission is known
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const backendHost = import.meta.env.VITE_BACKEND_WS_URL || 'localhost:8000';
+        const socketUrl = `${wsProtocol}://${backendHost}/ws/todo/${id}/?token=${user.access}`;
+        const socketInstance = new WebSocket(socketUrl);
+  
+        socketInstance.onopen = () => {
+          console.log('WebSocket connected ✅');
+        };
+  
+        socketInstance.onmessage = (e) => {
+          const data = JSON.parse(e.data);
+          console.log('WebSocket message received:', data);
+          switch (data.type) {
+            case 'todo_created':
+              setTodos((prev) => {
+                const exists = prev.some(todo => todo.id === data.todo.id);
+                return exists ? prev : [...prev, data.todo];
+              });
+              break;
+
+            case 'todo_updated':
+              setTodos((prev) =>
+                prev.map((todo) => (todo.id === data.todo.id ? data.todo : todo))
+              );
+              break;
+            case 'todo_deleted':
+              setTodos((prev) => prev.filter((todo) => todo.id !== data.todo_id));
+              break;
+            default:
+              console.warn('Unknown message type:', data.type);
+          }
+        };
+  
+        socketInstance.onerror = (e) => {
+          console.error('WebSocket error:', e);
+        };
+  
+        socketInstance.onclose = (e) => {
+          console.log('WebSocket closed:', e.reason);
+        };
+  
+        setSocket(socketInstance);
+  
+        return () => {
+          socketInstance.close();
+        };
+  
       } catch (err) {
         console.error('Failed to fetch data:', err);
+        setIsLoading(false);
         if (err.response?.status === 404) {
           setError('This list was not found.');
         } else {
           setError('Something went wrong while loading the list.');
         }
-        setIsLoading(false);
       }
     };
-
-    fetchListAndTodos();
+  
+    fetchListAndSetupWebSocket();
   }, [id, user]);
+  
 
   const handleTitleUpdate = async () => {
-    if (!listTitle.trim() || listTitle === originalTitle) return;
-
+    if (!listTitle.trim() || listTitle === originalTitle || !isOwner) return;
+  
     try {
       const config = {
         headers: { Authorization: `Bearer ${user.access}` },
@@ -90,9 +141,10 @@ const TodoListPage = () => {
           onChange={(e) => setListTitle(e.target.value)}
           onBlur={handleTitleUpdate}
           onKeyDown={handleKeyDown}
-          disabled={isLoading || permission === 'view'}
+          disabled={isLoading || permission === 'view' || !isOwner}
           className="input input-bordered text-2xl font-bold w-full mr-4"
           placeholder="Untitled List"
+          title={!isOwner ? "Only the list owner can rename it" : ""}
         />
         {isOwner && (
           <button className="btn btn-outline" onClick={() => setShowShare(true)}>
@@ -117,7 +169,7 @@ const TodoListPage = () => {
       )}
 
       {/* Todo Creation Form */}
-      {permission !== 'view' && <TodoForm listId={id} setTodos={setTodos} />}
+      {permission !== 'view' && <TodoForm listId={id} setTodos={setTodos} socket={socket} />}
 
       {/* Todos Display */}
       {error ? (
@@ -129,7 +181,7 @@ const TodoListPage = () => {
           No todos yet. Add one using the form above.
         </div>
       ) : (
-        <Table todos={todos} setTodos={setTodos} permission={permission} />
+        <Table todos={todos} setTodos={setTodos} permission={permission} socket={socket} />   
       )}
 
       {/* Shared With Section */}

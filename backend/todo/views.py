@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import PermissionDenied
+
 
 
 User = get_user_model()
@@ -58,7 +60,51 @@ class TodoItemViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save()
+        todo_list = serializer.validated_data.get('todo_list')
+        user = self.request.user
+
+        # Owner can create
+        if todo_list.owner == user:
+            serializer.save()
+            return
+
+        # Check if user has shared edit permission
+        shared = SharedTodoList.objects.filter(user=user, todo_list=todo_list).first()
+        if shared and shared.permission == 'edit':
+            serializer.save()
+            return
+
+        # Otherwise: reject
+        raise PermissionDenied("You do not have permission to add items to this list.")
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        todo_list = instance.todo_list
+        user = request.user
+
+        if todo_list.owner == user:
+            return super().update(request, *args, **kwargs)
+
+        shared = SharedTodoList.objects.filter(todo_list=todo_list, user=user).first()
+        if shared and shared.permission == 'edit':
+            return super().update(request, *args, **kwargs)
+
+        raise PermissionDenied("You do not have permission to edit this item.")
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        todo_list = instance.todo_list
+        user = request.user
+
+        if todo_list.owner == user:
+            return super().destroy(request, *args, **kwargs)
+
+        shared = SharedTodoList.objects.filter(todo_list=todo_list, user=user).first()
+        if shared and shared.permission == 'edit':
+            return super().destroy(request, *args, **kwargs)
+
+        raise PermissionDenied("You do not have permission to delete this item.")
+
 
 
 class SharedTodoListViewSet(viewsets.ModelViewSet):

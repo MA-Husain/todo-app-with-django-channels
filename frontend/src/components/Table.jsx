@@ -8,9 +8,8 @@ import {
 } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 
-const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
+const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
   const { user } = useSelector((state) => state.auth);
-
   const config = {
     headers: {
       Authorization: `Bearer ${user.access}`,
@@ -24,6 +23,16 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
       await axios.delete(`http://localhost:8000/api/items/${id}/`, config);
       const newList = todos.filter((todo) => todo.id !== id);
       setTodos(newList);
+
+      // 🔁 Send WebSocket message
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "todo_deleted",
+            todo_id: id,
+          })
+        );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -36,10 +45,21 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
         value,
         config
       );
+
       const newTodos = todos.map((todo) =>
         todo.id === id ? response.data : todo
       );
       setTodos(newTodos);
+
+      // 🔁 Send WebSocket message
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "todo_updated",
+            todo: response.data,
+          })
+        );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -88,6 +108,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
               <tr key={todo.id} className='border-b'>
                 <td className='p-3'>
                   <button
+                    data-testid={`checkbox-button-${todo.id}`}
                     onClick={() => permission !== 'view' && handleCheckbox(todo.id, todo.completed)}
                     className={permission === 'view' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
                     disabled={permission === 'view'}
@@ -132,6 +153,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
                     </button>
                   ) : permission !== 'view' ? (
                     <button
+                      data-testid={`edit-button-${todo.id}`}
                       onClick={() => setEditText({ id: todo.id, body: todo.body })}
                       className='text-blue-500 cursor-pointer'
                     >
@@ -141,6 +163,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit' }) => {
 
                   {permission !== 'view' && (
                     <button
+                      data-testid={`delete-button-${todo.id}`}
                       onClick={() => handleDelete(todo.id)}
                       className='text-red-500 cursor-pointer'
                     >

@@ -7,9 +7,9 @@ const ShareListModal = ({ listId, isOpen, onClose, onShareSuccess }) => {
   const [email, setEmail] = useState('');
   const [permission, setPermission] = useState('view');
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useSelector((state) => state.auth);
-  const isSharingWithSelf = email.trim().toLowerCase() === user?.email?.toLowerCase();
-
+  const { user, userInfo } = useSelector((state) => state.auth);
+  const isSharingWithSelf = email.trim().toLowerCase() === userInfo?.email?.toLowerCase();
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -99,7 +99,7 @@ const ShareListModal = ({ listId, isOpen, onClose, onShareSuccess }) => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={isLoading || isSharingWithSelf}
+              disabled={isLoading || isSharingWithSelf || !email || !permission}
             >
               {isLoading ? 'Sharing...' : 'Share'}
             </button>
