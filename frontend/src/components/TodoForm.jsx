@@ -24,9 +24,8 @@ const TodoForm = ({ listId, socket }) => {
         config
       );
   
-      setBody(""); // ✅ Clear input after success
+      setBody(""); 
   
-      // ✅ Let the WebSocket handle updating todos
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(
           JSON.stringify({
@@ -35,9 +34,7 @@ const TodoForm = ({ listId, socket }) => {
           })
         );
       }
-    } catch (err) {
-      console.error("Failed to add todo:", err.response?.data || err);
-    }
+    } catch (error) {}
   };  
 
   return (

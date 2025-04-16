@@ -10,7 +10,7 @@ router.register('lists', TodoListViewSet, basename='lists')
 router.register('items', TodoItemViewSet, basename='items')
 router.register('shared-todolists', SharedTodoListViewSet, basename='shared-todolists')
 
-urlpatterns = router.urls  # ✅ This line is mandatory
+urlpatterns = router.urls 
 urlpatterns += [
     path('lists/<int:pk>/permission/', TodoListPermissionView.as_view()),
 ]

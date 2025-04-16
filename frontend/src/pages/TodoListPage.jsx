@@ -58,7 +58,7 @@ const TodoListPage = () => {
   
         socketInstance.onmessage = (e) => {
           const data = JSON.parse(e.data);
-          console.log('WebSocket message received:', data);
+          
           switch (data.type) {
             case 'todo_created':
               setTodos((prev) => {
@@ -76,16 +76,16 @@ const TodoListPage = () => {
               setTodos((prev) => prev.filter((todo) => todo.id !== data.todo_id));
               break;
             default:
-              console.warn('Unknown message type:', data.type);
+              console.warn('Unknown message type:');
           }
         };
   
         socketInstance.onerror = (e) => {
-          console.error('WebSocket error:', e);
+          console.error('WebSocket error:');
         };
   
         socketInstance.onclose = (e) => {
-          console.log('WebSocket closed:', e.reason);
+          console.log('WebSocket closed:');
         };
   
         setSocket(socketInstance);
@@ -95,7 +95,7 @@ const TodoListPage = () => {
         };
   
       } catch (err) {
-        console.error('Failed to fetch data:', err);
+        
         setIsLoading(false);
         if (err.response?.status === 404) {
           setError('This list was not found.');
@@ -120,7 +120,7 @@ const TodoListPage = () => {
       setOriginalTitle(listTitle);
       toast.success('Title updated');
     } catch (err) {
-      console.error('Failed to update title:', err);
+      
       toast.error('Failed to update title');
     }
   };

@@ -34,7 +34,7 @@ class TodoConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             print("Anonymous user, closing connection.")
             await self.close()
-            return  # optionally close or ignore
+            return 
 
         if event_type == "todo_created":
             await self.channel_layer.group_send(

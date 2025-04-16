@@ -12,7 +12,7 @@ import ResetPasswordPageConfirm from "./pages/ResetPasswordPageConfirm";
 import ActivatePage from "./pages/ActivatePage";
 import NotFoundPage from "./pages/NotFoundPage";
 import GuestOnlyRoute from "./components/routes/GuestOnlyRoute";
-import PrivateRoute from "./components/routes/PrivateRoute"; // ✅ New import
+import PrivateRoute from "./components/routes/PrivateRoute";
 import TodoListPage from "./pages/TodoListPage";
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -26,9 +26,9 @@ function App() {
     const checkToken = async () => {
       if (user?.access) {
         try {
-          await dispatch(getUserInfo()).unwrap(); // try fetching user info
+          await dispatch(getUserInfo()).unwrap();
         } catch (err) {
-          dispatch(logout()); // if failed (e.g., token invalid), log out
+          dispatch(logout());
         }
       }
     };

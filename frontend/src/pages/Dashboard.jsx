@@ -22,18 +22,14 @@ const DashboardPage = () => {
       try {
         const res = await axios.get('/lists/', config);
         setLists(res.data);
-      } catch (err) {
-        console.error(err.response?.data || err.message);
-      }
+      } catch (error) {}
     };
 
     const fetchShared = async () => {
       try {
         const res = await axios.get('/shared-todolists/?shared_with_me=true', config);
         setShared(res.data);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (error) {}
     };
 
     fetchLists();
@@ -49,9 +45,7 @@ const DashboardPage = () => {
       const newList = res.data;
       setLists((prev) => [...prev, newList]);
       navigate(`/lists/${newList.id}`);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (error) {}
   };
 
   const handleDelete = async (id, e) => {
@@ -62,9 +56,7 @@ const DashboardPage = () => {
       };
       await axios.delete(`/lists/${id}/`, config);
       setLists((prev) => prev.filter((list) => list.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (error) {}
   };
 
   return (

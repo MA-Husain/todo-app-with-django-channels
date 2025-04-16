@@ -13,8 +13,7 @@ const SharedWithSection = ({ listId, token, isOwner, refreshTrigger }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSharedUsers(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Failed to load shared users.');
     } finally {
       setLoading(false);
@@ -28,8 +27,7 @@ const SharedWithSection = ({ listId, token, isOwner, refreshTrigger }) => {
       });
       toast.success('Permission updated');
       fetchSharedUsers();
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Failed to update permission.');
     }
   };
@@ -43,8 +41,7 @@ const SharedWithSection = ({ listId, token, isOwner, refreshTrigger }) => {
       });
       toast.success('User unshared');
       fetchSharedUsers();
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error('Failed to unshare user.');
     }
   };

@@ -26,7 +26,6 @@ Temporary Items
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
 
 # C extensions
@@ -48,6 +47,9 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Ignore Django collectstatic output
+backend/staticfiles/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -91,7 +93,7 @@ db.sqlite3
 
 
 # React
-
+frontend/dist/
 .DS_STORE
 node_modules
 scripts/flow/*/.flowconfig

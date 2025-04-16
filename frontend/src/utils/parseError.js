@@ -1,5 +1,4 @@
 export const parseError = (error) => {
-    // Backend sends: { email: ["This field is required."] }
     if (error.response?.data) {
       const data = error.response.data
   

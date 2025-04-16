@@ -24,7 +24,6 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
       const newList = todos.filter((todo) => todo.id !== id);
       setTodos(newList);
 
-      // 🔁 Send WebSocket message
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(
           JSON.stringify({
@@ -33,9 +32,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
           })
         );
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   const handleEdit = async (id, value) => {
@@ -60,9 +57,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
           })
         );
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   const handleChange = (e) => {
