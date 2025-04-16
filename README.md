@@ -46,8 +46,8 @@ A full-stack collaborative ToDo application built using modern technologies:
 
 1. Clone the repository and navigate to the backend folder:
    ```sh
-   git clone <repo-url>
-   cd todoapp/backend
+   git clone https://github.com/MA-Husain/todo-app-with-django-channels.git
+   cd ../backend
    ```
 
 2. Create a virtual environment and install dependencies:
