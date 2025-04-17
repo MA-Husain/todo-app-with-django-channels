@@ -20,7 +20,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/api/items/${id}/`, config);
+      await axios.delete(`/items/${id}/`, config);
       const newList = todos.filter((todo) => todo.id !== id);
       setTodos(newList);
 
@@ -37,11 +37,7 @@ const Table = ({ todos, isLoading, setTodos, permission = 'edit', socket }) => {
 
   const handleEdit = async (id, value) => {
     try {
-      const response = await axios.patch(
-        `http://localhost:8000/api/items/${id}/`,
-        value,
-        config
-      );
+      const response = await axios.patch(`/items/${id}/`, value, config);
 
       const newTodos = todos.map((todo) =>
         todo.id === id ? response.data : todo

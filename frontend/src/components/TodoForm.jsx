@@ -19,10 +19,10 @@ const TodoForm = ({ listId, socket }) => {
       };
   
       const response = await axios.post(
-        "http://localhost:8000/api/items/",
+        "/items/",
         { body, todo_list: listId },
         config
-      );
+      );      
   
       setBody(""); 
   
