@@ -4,14 +4,12 @@ from channels.db import database_sync_to_async
 from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth import get_user_model
-from jwt import decode as jwt_decode
-from django.conf import settings
-
-User = get_user_model()
 
 @database_sync_to_async
 def get_user(validated_token):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
     try:
         jwt_auth = JWTAuthentication()
         user = jwt_auth.get_user(validated_token)
